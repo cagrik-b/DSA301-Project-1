@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3 Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chart-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .axis-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chart-container">
+        <div id="dataviz"></div>
+    </div>
+
+    <script>
+        const data = [
+            { year: 2019, population: 83.1, births: 1191709 },
+            { year: 2020, population: 83.6, births: 1119755 },
+            { year: 2021, population: 84.6, births: 1085450 },
+            { year: 2022, population: 85.2, births: 1040860 },
+            { year: 2023, population: 85.3, births: 961566 },
+            { year: 2024, population: 85.5, births: 937559 }
+        ];
+
+        const margin = {top: 40, right: 80, bottom: 50, left: 60},
+              width = 800 - margin.left - margin.right,
+              height = 400 - margin.top - margin.bottom;
+
+        const svg = d3.select("#dataviz")
+          .append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", `translate(${margin.left},${margin.top})`);
+
+        const x = d3.scaleLinear()
+          .domain(d3.extent(data, d => d.year))
+          .range([ 0, width ]);
+
+        const yPop = d3.scaleLinear()
+          .domain([80, 86])
+          .range([ height, 0 ]);
+
+        const yBirths = d3.scaleLinear()
+          .domain([900000, 1250000])
+          .range([ height, 0 ]);
+
+        // X eksenini cizerken tickFormat("") kullanarak yillari gizliyoruz
+        svg.append("g")
+          .attr("transform", `translate(0,${height})`)
+          .call(d3.axisBottom(x).ticks(6).tickFormat(""));
+
+        svg.append("g")
+          .call(d3.axisLeft(yPop))
+          .style("color", "#4682B4");
+
+        svg.append("g")
+          .attr("transform", `translate(${width},0)`)
+          .call(d3.axisRight(yBirths))
+          .style("color", "#D1495B");
+
+        svg.append("path")
+          .datum(data)
+          .attr("fill", "#4682B4")
+          .attr("fill-opacity", 0.3)
+          .attr("stroke", "none")
+          .attr("d", d3.area()
+            .x(d => x(d.year))
+            .y0(height)
+            .y1(d => yPop(d.population))
+          );
+
+        svg.append("path")
+          .datum(data)
+          .attr("fill", "none")
+          .attr("stroke", "#D1495B")
+          .attr("stroke-width", 4)
+          .attr("d", d3.line()
+            .x(d => x(d.year))
+            .y(d => yBirths(d.births))
+          );
+
+        svg.selectAll("myCircles")
+          .data(data)
+          .join("circle")
+            .attr("fill", "#D1495B")
+            .attr("stroke", "white")
+            .attr("stroke-width", 2)
+            .attr("cx", d => x(d.year))
+            .attr("cy", d => yBirths(d.births))
+            .attr("r", 5);
+
+        svg.append("text")
+            .attr("x", -height/2)
+            .attr("y", -40)
+            .attr("transform", "rotate(-90)")
+            .attr("text-anchor", "middle")
+            .attr("class", "axis-label")
+            .style("fill", "#4682B4")
+            .text("Population (Millions)");
+
+        svg.append("text")
+            .attr("x", -height/2)
+            .attr("y", width + 60)
+            .attr("transform", "rotate(-90)")
+            .attr("text-anchor", "middle")
+            .attr("class", "axis-label")
+            .style("fill", "#D1495B")
+            .text("Number of Births");
+
+    </script>
+</body>
+</html>
